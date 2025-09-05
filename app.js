@@ -8,6 +8,11 @@ var logger = require('morgan');
 const mongodb = require('mongodb')
 var MongoClient = mongodb.MongoClient;
 
+// Session 설정
+var session = require('express-session');
+var fileStore = require('session-file-store')(session);
+
+
 // 암호화 모듈 설정
 // var bcrypt = require
 
@@ -15,6 +20,24 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
+
+// 세션 설정
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'session-login',
+  resave: false,
+  saveUninitalized: false,
+  store: new fileStore({
+    path: './session',
+    ttl: 24 * 60 * 60,
+    reapInterval: 60 * 60
+  }),
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 쿠키 유효기간
+  }
+}));
+
 
 // DB 연결
 async function connectDB() {
